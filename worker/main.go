@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	workerID := os.Getenv("WORKER_ID")
+	workerID := os.Getenv("HOSTNAME")
 	taskNumber := os.Getenv("TASK_NUMBER")
 	log.Printf("Worker %s sarted for %s", workerID, taskNumber)
 

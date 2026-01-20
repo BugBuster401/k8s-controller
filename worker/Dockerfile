@@ -1,20 +1,16 @@
 # Step 1: Assembly
-FROM golang:alpine3.20 AS builder
+FROM golang:alpine3.22 AS builder
 
 WORKDIR /app
-
-# Copy only go.mod and go.sum to cache dependencies
-COPY go.mod go.sum ./
-RUN go mod download
 
 # Copy the remaining files
 COPY .. .
 
 # Building binaries
-RUN mkdir -p /app/build && go build -o ./build/k8s_worker
+RUN mkdir -p /app/build && go build -o ./build/k8s_worker  ./main.go
 
 # Stage 2: The final image
-FROM alpine:3.21
+FROM alpine:3.22
 
 WORKDIR /app
 

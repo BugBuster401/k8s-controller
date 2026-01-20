@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: k8s-controller
-    namespace: default
+    name: k8s-worker
+    namespace: test
 spec:
     replicas: 1
     selector:
         matchLabels:
-            app: k8s-controller
+            app: k8s-worker
             number: "1"
     template:
         metadata:
             labels:
-                app: k8s-controller
+                app: k8s-worker
                 number: "1"
         spec:
             containers:
@@ -21,10 +21,6 @@ spec:
                 env:
                 -   name: TASK_NUMBER
                     value: "1"
-                -   name: WORKER_ID
-                    valueFrom:
-                        fieldRef:
-                            fieldPath: metadata.name
                 resources:
                     limits:
                         memory: "128Mi"

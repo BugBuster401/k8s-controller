@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: k8s-controller
+    namespace: test
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: k8s-controller
+    template:
+        metadata:
+            labels:
+                app: k8s-controller
+        spec:
+            serviceAccountName: deployment-manager
+            containers:
+            -   name: k8s-controller
+                image: k8s-controller:1.0
+                resources:
+                    limits:
+                        memory: "128Mi"
+                        cpu: "500m"
+                    requests:
+                        memory: "50Mi"
+                        cpu: "100m"

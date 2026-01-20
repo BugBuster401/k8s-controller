@@ -1,5 +1,5 @@
 # Step 1: Assembly
-FROM golang:alpine3.20 AS builder
+FROM golang:alpine3.22 AS builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY .. .
 RUN mkdir -p /app/build && go build -o ./build/k8s_controller
 
 # Stage 2: The final image
-FROM alpine:3.21
+FROM alpine:3.22
 
 WORKDIR /app
 
