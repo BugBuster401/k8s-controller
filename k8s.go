@@ -15,11 +15,18 @@ type K8sClient struct {
 	namespace string
 }
 
-func NewK8sClient(clientset *kubernetes.Clientset, namespace string) *K8sClient {
+func NewK8sClient(clientset *kubernetes.Clientset, namespace string) (*K8sClient, error) {
+	version, err := clientset.Discovery().ServerVersion()
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("Kubernetes API версия: %s\n", version.String())
+
 	return &K8sClient{
 		clientset: clientset,
 		namespace: namespace,
-	}
+	}, nil
 }
 
 func (c *K8sClient) CreateDeployment(taskNumber, deploymentName string) error {

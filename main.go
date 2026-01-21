@@ -19,7 +19,10 @@ func main() {
 		log.Fatalf("Error creating Kubernetes client: %v", err)
 	}
 
-	k8sClient := NewK8sClient(clientset, "test")
+	k8sClient, err := NewK8sClient(clientset, "test")
+	if err != nil {
+		log.Fatalf("Failed k8s api connection ")
+	}
 	handler := NewHandler(k8sClient)
 
 	mux := http.NewServeMux()
