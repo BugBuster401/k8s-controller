@@ -8,15 +8,13 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-var clientset *kubernetes.Clientset
-
 func main() {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		log.Fatalf("Error getting cluster configuration: %v", err)
 	}
 
-	clientset, err = kubernetes.NewForConfig(config)
+	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		log.Fatalf("Error creating Kubernetes client: %v", err)
 	}

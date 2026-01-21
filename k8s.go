@@ -60,7 +60,7 @@ func (c *K8sClient) CreateDeployment(taskNumber, deploymentName string) error {
 	}
 
 	// Create Deployment
-	deploymentsClient := clientset.AppsV1().Deployments(c.namespace)
+	deploymentsClient := c.clientset.AppsV1().Deployments(c.namespace)
 	_, err := deploymentsClient.Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
 		return err
@@ -74,7 +74,7 @@ func int32Ptr(i int32) *int32 { return &i }
 func (c *K8sClient) GetDeployment(deploymentName string) (*appsv1.Deployment, error) {
 	ctx := context.Background()
 
-	deployment, err := clientset.AppsV1().Deployments(c.namespace).
+	deployment, err := c.clientset.AppsV1().Deployments(c.namespace).
 		Get(ctx, deploymentName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func (c *K8sClient) DeleteDeployment(deploymentName string) error {
 	log.Printf("Deleting deployment %s in namespace %s...\n",
 		deploymentName, c.namespace)
 
-	err := clientset.AppsV1().Deployments(c.namespace).
+	err := c.clientset.AppsV1().Deployments(c.namespace).
 		Delete(ctx, deploymentName, deleteOptions)
 	if err != nil {
 		return err
