@@ -71,3 +71,25 @@ func (h *Handler) DeleteWorkers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNoContent)
 }
+
+type CreateJobRequest struct {
+	TaskNumber string `json:"task_number"`
+}
+
+func (h *Handler) CreateJob(w http.ResponseWriter, r *http.Request) {
+	var req CreateJobRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("failed decode json: %s", err.Error())
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := h.client.CreateJob(req.TaskNumber, "k8s-worker"); err != nil {
+		log.Printf("failed create job: %s", err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}

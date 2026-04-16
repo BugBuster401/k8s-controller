@@ -3,23 +3,10 @@ package main
 import (
 	"log"
 	"net/http"
-
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 )
 
 func main() {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		log.Fatalf("Error getting cluster configuration: %v", err)
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		log.Fatalf("Error creating Kubernetes client: %v", err)
-	}
-
-	k8sClient, err := NewK8sClient(clientset, "test")
+	k8sClient, err := NewK8sClient("test")
 	if err != nil {
 		log.Fatalf("Failed k8s api connection ")
 	}
@@ -29,6 +16,7 @@ func main() {
 	mux.HandleFunc("POST /workers", handler.CreateWorkers)
 	mux.HandleFunc("GET /workers/{name}", handler.GetWorkers)
 	mux.HandleFunc("DELETE /workers/{name}", handler.DeleteWorkers)
+	mux.HandleFunc("POST /jobs", handler.CreateJob)
 
 	log.Println("Server start...")
 

@@ -13,7 +13,7 @@ spec:
             labels:
                 app: k8s-controller
         spec:
-            serviceAccountName: deployment-manager
+            serviceAccountName: object-manager
             containers:
             -   name: k8s-controller
                 image: k8s-controller:1.0
