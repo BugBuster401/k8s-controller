@@ -98,6 +98,9 @@ func (c *K8sClient) watchJob(jobName string) {
 				switch condition.Type {
 				case batchv1.JobComplete:
 					log.Printf("Job %s completed successfully", jobName)
+					if err := c.DeleteJob(jobName); err != nil {
+						log.Printf("failed delete job %s: %v", jobName, err)
+					}
 					return // Everything is fine, the application can continue to work.
 
 				case batchv1.JobFailed:

@@ -13,25 +13,31 @@ func main() {
 	taskNumber := os.Getenv("TASK_NUMBER")
 	log.Printf("Worker %s sarted for %s", workerID, taskNumber)
 
+	JobLogics()
+}
+
+func JobLogics() {
+	time.Sleep(time.Second * 10)
+	log.Println("task completed!!!")
+}
+
+func DeploymentLogics() {
 	mux := http.NewServeMux()
-
-	OOMKilled()
-
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
 
 func OOMKilled() {
 	fmt.Println("Starting memory allocation test...")
 
-	// Пытаемся выделить 1 GiB (1073741824 байт)
+	// trying to allocate 1 GiB (1073741824 byte)
 	const size = 1073741824
 	bigSlice := make([]byte, size)
 
-	// Заполняем, чтобы память реально зафиксировалась (touch pages)
+	// fill it up so that the memory is actually fixed (touch pages)
 	for i := range bigSlice {
 		bigSlice[i] = 0xFF
 	}
 
 	fmt.Println("Memory allocated, sleeping...")
-	time.Sleep(1 * time.Minute) // Даем время увидеть OOMKilled
+	time.Sleep(1 * time.Minute) // let's see OOMKilled
 }
