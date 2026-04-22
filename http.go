@@ -2,15 +2,18 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/BugBuster401/k8s-controller/k8s"
 )
 
 type Handler struct {
-	client *K8sClient
+	client *k8s.K8sClient
 }
 
-func NewHandler(client *K8sClient) *Handler {
+func NewHandler(client *k8s.K8sClient) *Handler {
 	return &Handler{client: client}
 }
 
@@ -85,10 +88,35 @@ func (h *Handler) CreateJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.client.CreateJob(req.TaskNumber, "k8s-worker"); err != nil {
+	if err := h.client.DeployJob(req.TaskNumber, "k8s-worker"); err != nil {
 		log.Printf("failed create job: %s", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}
+
+type CreateJobsRequest struct {
+	TaskNumbers []string `json:"task_numbers"`
+}
+
+func (h *Handler) CreateJobs(w http.ResponseWriter, r *http.Request) {
+	var req CreateJobsRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("failed decode json: %s", err.Error())
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	for _, tn := range req.TaskNumbers {
+		jobName := fmt.Sprintf("k8s-worker-%s", tn)
+		if err := h.client.DeployJob(tn, jobName); err != nil {
+			log.Printf("failed create job: %s", err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusCreated)

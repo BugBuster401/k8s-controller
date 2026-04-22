@@ -1,4 +1,4 @@
-package main
+package k8s
 
 import (
 	"log"
@@ -10,7 +10,22 @@ import (
 type K8sClient struct {
 	clientset *kubernetes.Clientset
 	namespace string
+	eventChan chan JobEvent
 }
+
+type JobEvent struct {
+	JobName string
+	Status  JobStatus
+	Error   error
+	Message string
+}
+
+type JobStatus string
+
+const (
+	JobCompleted JobStatus = "completed"
+	JobFailed    JobStatus = "failed"
+)
 
 func NewK8sClient(namespace string) (*K8sClient, error) {
 	config, err := rest.InClusterConfig()
@@ -33,7 +48,12 @@ func NewK8sClient(namespace string) (*K8sClient, error) {
 	return &K8sClient{
 		clientset: clientset,
 		namespace: namespace,
+		eventChan: make(chan JobEvent, 100),
 	}, nil
+}
+
+func (c *K8sClient) GetEventChannel() <-chan JobEvent {
+	return c.eventChan
 }
 
 func int32Ptr(i int32) *int32 { return &i }

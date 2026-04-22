@@ -1,7 +1,8 @@
-package main
+package k8s
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -11,7 +12,20 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (c *K8sClient) CreateJob(taskNumber, jobName string) error {
+func (c *K8sClient) DeployJob(taskNumber, jobName string) error {
+	job := c.createJob(taskNumber, jobName)
+	jobClient := c.clientset.BatchV1().Jobs(c.namespace)
+	job, err := jobClient.Create(context.TODO(), job, metav1.CreateOptions{})
+	if err != nil {
+		return err
+	}
+
+	go c.watchJob(job.Name)
+
+	return nil
+}
+
+func (c *K8sClient) createJob(taskNumber, jobName string) *batchv1.Job {
 	// Environment variables
 	envVars := []corev1.EnvVar{
 		{
@@ -62,15 +76,7 @@ func (c *K8sClient) CreateJob(taskNumber, jobName string) error {
 		},
 	}
 
-	jobClient := c.clientset.BatchV1().Jobs(c.namespace)
-	job, err := jobClient.Create(context.TODO(), job, metav1.CreateOptions{})
-	if err != nil {
-		return err
-	}
-
-	go c.watchJob(job.Name)
-
-	return nil
+	return job
 }
 
 func (c *K8sClient) watchJob(jobName string) {
@@ -79,7 +85,12 @@ func (c *K8sClient) watchJob(jobName string) {
 		FieldSelector: fmt.Sprintf("metadata.name=%s", jobName),
 	})
 	if err != nil {
-		log.Printf("failed to create watch: %v", err)
+		c.eventChan <- JobEvent{
+			JobName: jobName,
+			Status:  "failed",
+			Error:   err,
+			Message: "failed to create watch",
+		}
 		return
 	}
 	defer watch.Stop()
@@ -97,19 +108,21 @@ func (c *K8sClient) watchJob(jobName string) {
 			if condition.Status == corev1.ConditionTrue {
 				switch condition.Type {
 				case batchv1.JobComplete:
-					log.Printf("Job %s completed successfully", jobName)
-					if err := c.DeleteJob(jobName); err != nil {
-						log.Printf("failed delete job %s: %v", jobName, err)
+					c.eventChan <- JobEvent{
+						JobName: jobName,
+						Status:  JobCompleted,
+						Message: "job completed successfully",
 					}
 					return // Everything is fine, the application can continue to work.
 
 				case batchv1.JobFailed:
 					// Handle job errors
-					log.Printf("job %s failed with error: %s. Reason: %s", jobName, condition.Message, condition.Reason)
-					if err := c.DeleteJob(jobName); err != nil {
-						log.Printf("failed delete job %s: %v", jobName, err)
+					c.eventChan <- JobEvent{
+						JobName: jobName,
+						Status:  JobFailed,
+						Error:   errors.New(condition.Reason),
+						Message: condition.Message,
 					}
-
 					return
 				}
 			}

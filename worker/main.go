@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"time"
@@ -13,7 +14,11 @@ func main() {
 	taskNumber := os.Getenv("TASK_NUMBER")
 	log.Printf("Worker %s sarted for %s", workerID, taskNumber)
 
-	JobLogics()
+	if rand.IntN(100) < 50 { // 50%
+		OOMKilled()
+	} else {
+		JobLogics()
+	}
 }
 
 func JobLogics() {
